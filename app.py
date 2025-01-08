@@ -5,6 +5,7 @@ import os
 import psycopg2  # PostgreSQL 연동을 위한 라이브러리
 
 app = Flask(__name__)
+init_db()
 
 ######################################
 # DB 연결 설정: 환경변수에서 읽어오기
