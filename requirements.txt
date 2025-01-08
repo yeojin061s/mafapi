@@ -8,3 +8,4 @@ idna==3.10
 urllib3==2.3.0
 gunicorn==21.2.0
 schedule
+psycopg2-binary
