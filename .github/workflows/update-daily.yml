@@ -1,15 +1,36 @@
 name: Daily User Stats Update
 
 on:
+  # 1) 매일 UTC 14:55 (KST 23:55)에 앱을 미리 깨우는 "핑" 요청
   schedule:
-    - cron: "59 14 * * *" # 매일 한국 시간 23:59에 실행 (UTC로는 14:59)
-  workflow_dispatch: # 수동 실행 기능 추가
+    - cron: "55 14 * * *"
+  # 2) 매일 UTC 14:59 (KST 23:59)에 실제 /update-daily 호출
+    - cron: "59 14 * * *"
 
 jobs:
-  update-daily:
+  # -----------------------
+  #  1) 23:55 KST (UTC 14:55) → Pre-warm Render
+  # -----------------------
+  pre_ping:
     runs-on: ubuntu-latest
-
+    # 이 job은 schedule 문자열에 "55 14"가 포함된 경우에만 실행
+    if: contains(github.event.schedule, '55 14 * * *')
     steps:
-      - name: Call the Update Daily Endpoint
+      - name: Pre-warm the Render app
         run: |
+          echo "Sending a simple GET request to wake the app..."
+          # GET 요청 (타임아웃 15초)
+          curl -s -m 15 https://mafapi.onrender.com/ || true
+
+  # -----------------------
+  #  2) 23:59 KST (UTC 14:59) → /update-daily
+  # -----------------------
+  update_daily:
+    runs-on: ubuntu-latest
+    # 이 job은 schedule 문자열에 "59 14"가 포함된 경우에만 실행
+    if: contains(github.event.schedule, '59 14 * * *')
+    steps:
+      - name: Update Daily Endpoint
+        run: |
+          echo "Calling /update-daily..."
           curl -X POST https://mafapi.onrender.com/update-daily
