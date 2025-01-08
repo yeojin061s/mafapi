@@ -373,6 +373,12 @@ def update_user():
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
 
+@app.route("/ping", methods=["GET"])
+def ping():
+    print("🔔 Ping received from GitHub Actions!")  # 이 메시지가 Render Logs에 찍힘
+    return "Pong!", 200
+
+
 
 ################################
 # 메인 실행
