@@ -268,6 +268,36 @@ def check_activity():
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
 
+@app.route('/update-user', methods=['POST'])
+def update_user():
+    """
+    유저 데이터를 데이터베이스에 업데이트하는 엔드포인트
+    """
+    try:
+        # 클라이언트에서 전달받은 데이터
+        data = request.json
+        user_id = data.get("user_id")
+        nickname = data.get("nickname")
+        wins = data.get("wins")
+        losses = data.get("losses")
+
+        # 필수 데이터 확인
+        if not user_id or not nickname or wins is None or losses is None:
+            return jsonify({"error": "유효한 데이터가 필요합니다 (user_id, nickname, wins, losses 모두 필수)"}), 400
+
+        with sqlite3.connect("users.db") as conn:
+            cursor = conn.cursor()
+
+            # 유저 데이터 업데이트 또는 삽입
+            cursor.execute("""
+                INSERT OR REPLACE INTO users (id, nickname, daily_wins, daily_losses)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, nickname, wins, losses))
+            conn.commit()
+
+        return jsonify({"message": "유저 데이터가 성공적으로 업데이트되었습니다."}), 200
+    except Exception as e:
+        return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
 
 
 # 메인 실행
