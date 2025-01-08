@@ -127,6 +127,23 @@ def update_nickname():
         print("🚨 서버 내부 오류:", str(e))
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
 
+@app.route('/show-users', methods=['GET'])
+def show_users():
+    """
+    users 테이블의 데이터를 JSON 형식으로 반환
+    """
+    try:
+        with sqlite3.connect("users.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users")
+            rows = cursor.fetchall()
+
+            # 결과를 JSON 형식으로 변환
+            users = [{"id": row[0], "nickname": row[1]} for row in rows]
+
+        return jsonify({"users": users}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # 메인 실행
