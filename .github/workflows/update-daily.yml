@@ -1,0 +1,14 @@
+name: Daily User Stats Update
+
+on:
+  schedule:
+    - cron: "59 14 * * *" # 매일 한국 시간 23:59에 실행 (UTC 기준 14:59)
+
+jobs:
+  update-daily:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call the Update Daily Endpoint
+        run: |
+          curl -X POST https://mafapi.onrender.com/update-daily
