@@ -46,26 +46,21 @@ def get_user_info():
             data=json.dumps({"id": user_id})
         )
 
-        print(f"API Response Status Code: {response.status_code}")
-        print(f"API Response Body: {response.text}")  # 로그에 응답 내용 출력
-
-
-        # Mafia42 API의 JSON 응답 처리
         if response.status_code == 200:
-            try:
-                return jsonify(response.json()), 200
-            except json.JSONDecodeError:
-                return jsonify({"error": "Mafia42 API가 유효한 JSON을 반환하지 않았습니다."}), 500
-        elif response.status_code == 401:
-            return jsonify({"error": "쿠키 정보가 만료되었습니다. 개발자에게 문의하세요."}), 401
-        else:
+            user_data = response.json().get("userData", {})
             return jsonify({
-                "error": "Mafia42 API 요청 실패",
-                "status_code": response.status_code,
-                "response_text": response.text
-            }), 500
+                "win_count": user_data.get("win_count", 0),
+                "lose_count": user_data.get("lose_count", 0),
+                "guild_initial": user_data.get("guild_initial", ""),
+                "guild_name": user_data.get("guild_name", ""),
+                "rankpoint": user_data.get("rankpoint", 0),
+                "fame": user_data.get("fame", 0)
+            }), 200
+        else:
+            return jsonify({"error": "Mafia42 API 요청 실패"}), response.status_code
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
+
 
 
 @app.route('/update-nickname', methods=['POST'])
