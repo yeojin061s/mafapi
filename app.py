@@ -133,17 +133,29 @@ def show_users():
     users 테이블의 데이터를 JSON 형식으로 반환
     """
     try:
+        print("🔍 데이터베이스 연결 시도 중...")  # 디버그 메시지
         with sqlite3.connect("users.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users")
+            
+            print("🔍 users 테이블 데이터 조회 중...")  # 디버그 메시지
+            cursor.execute("SELECT id, nickname, daily_wins, daily_losses FROM users")
             rows = cursor.fetchall()
+            
+            print(f"✅ 조회된 데이터: {rows}")  # 조회된 데이터 출력
 
             # 결과를 JSON 형식으로 변환
-            users = [{"id": row[0], "nickname": row[1]} for row in rows]
+            users = [
+                {"id": row[0], "nickname": row[1], "daily_wins": row[2], "daily_losses": row[3]}
+                for row in rows
+            ]
 
+        print(f"✅ JSON 변환된 데이터: {users}")  # JSON 변환 데이터 출력
         return jsonify({"users": users}), 200
     except Exception as e:
+        print(f"🚨 오류 발생: {str(e)}")  # 예외 메시지 출력
         return jsonify({"error": str(e)}), 500
+
+
 
 
 @app.route('/get-user-id', methods=['POST'])
