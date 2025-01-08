@@ -224,6 +224,57 @@ def update_daily():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/check-activity', methods=['POST'])
+def check_activity():
+    """
+    닉네임으로 유저의 오늘 플레이 횟수를 계산하여 반환
+    """
+    try:
+        data = request.json
+        nickname = data.get("nickname")
+
+        if not nickname:
+            return jsonify({"error": "유효한 닉네임이 필요합니다"}), 400
+
+        with sqlite3.connect("users.db") as conn:
+            cursor = conn.cursor()
+
+            # 닉네임으로 ID 조회
+            cursor.execute("SELECT id, daily_wins, daily_losses FROM users WHERE nickname = ?", (nickname,))
+            result = cursor.fetchone()
+
+            if not result:
+                return jsonify({"error": "해당 닉네임의 유저를 찾을 수 없습니다"}), 404
+
+            user_id, db_wins, db_losses = result
+
+            # 현재 전적 API 호출
+            response = requests.post(MAFIA42_API_URL, headers=HEADERS, data=json.dumps({"id": user_id}))
+            if response.status_code != 200:
+                return jsonify({"error": f"전적 API 호출 실패: {response.status_code}"}), 500
+
+            user_data = response.json().get("userData", {})
+            current_wins = user_data.get("win_count", 0)
+            current_losses = user_data.get("lose_count", 0)
+
+            # 오늘의 전적 계산
+            daily_wins = current_wins - db_wins
+            daily_losses = current_losses - db_losses
+            total_games = daily_wins + daily_losses
+
+            # 계산된 판수만 반환
+            return jsonify({
+                "nickname": nickname,
+                "daily_wins": daily_wins,
+                "daily_losses": daily_losses,
+                "total_games": total_games
+            }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
+
+
+
 # 메인 실행
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
