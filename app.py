@@ -50,6 +50,11 @@ def get_user_info():
         # Mafia42 API 호출
         response = requests.post(MAFIA42_API_URL, headers=HEADERS, data=json.dumps(data))
 
+        # 응답 데이터 로깅
+        print(f"API Response Status Code: {response.status_code}")
+        print(f"API Response Body: {response.text}")
+
+
         # 상태 코드 확인
         if response.status_code == 200:
             try:
