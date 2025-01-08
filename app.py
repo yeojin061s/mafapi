@@ -4,22 +4,16 @@ import json
 import os
 import psycopg2  # PostgreSQL 연동을 위한 라이브러리
 
-app = Flask(__name__)
-init_db()
-
-######################################
-# DB 연결 설정: 환경변수에서 읽어오기
-######################################
+############################
+# init_db()를 먼저 정의
+############################
 DB_HOST = os.environ.get("DB_HOST")
 DB_NAME = os.environ.get("DB_NAME")
 DB_USER = os.environ.get("DB_USER")
 DB_PASS = os.environ.get("DB_PASS")
-DB_PORT = os.environ.get("DB_PORT", "5432")  # 기본 포트 5432
+DB_PORT = os.environ.get("DB_PORT", "5432")
 
 def get_connection():
-    """
-    psycopg2로 PostgreSQL Connection 반환
-    """
     return psycopg2.connect(
         host=DB_HOST,
         dbname=DB_NAME,
@@ -29,14 +23,10 @@ def get_connection():
     )
 
 def init_db():
-    """
-    애플리케이션 처음 실행 시, 테이블이 없으면 새로 생성
-    """
     conn = get_connection()
     try:
         with conn:
             with conn.cursor() as cur:
-                # id를 PRIMARY KEY로 설정, 중복 시 ON CONFLICT 구문을 활용하기 위함
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS users (
                         id VARCHAR PRIMARY KEY,
@@ -47,6 +37,14 @@ def init_db():
                 """)
     finally:
         conn.close()
+
+# 이제 Flask 인스턴스 생성
+app = Flask(__name__)
+
+############################
+# 여기서 init_db()를 호출
+############################
+init_db()  # 함수 정의 후 호출하므로 NameError 없음
 
 
 ##################################################
