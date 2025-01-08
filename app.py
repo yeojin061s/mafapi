@@ -146,6 +146,33 @@ def show_users():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/get-user-id', methods=['POST'])
+def get_user_id():
+    """
+    닉네임으로 user_id를 조회
+    """
+    try:
+        data = request.json
+        nickname = data.get("nickname")
+
+        if not nickname:
+            return jsonify({"error": "유효한 닉네임이 필요합니다"}), 400
+
+        with sqlite3.connect("users.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE nickname = ?", (nickname,))
+            result = cursor.fetchone()
+
+        if not result:
+            return jsonify({"error": "해당 닉네임의 유저를 찾을 수 없습니다"}), 404
+
+        return jsonify({"user_id": result[0]}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 # 메인 실행
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
