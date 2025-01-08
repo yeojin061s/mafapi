@@ -4,6 +4,11 @@ import json
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return "Hello, Render! Your Flask app is live!"
+
+
 # Mafia42 API URL
 MAFIA42_API_URL = "https://mafia42.com/api/user/user-info"
 
