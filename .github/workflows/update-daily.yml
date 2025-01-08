@@ -6,27 +6,14 @@ on:
     - cron: "55 14 * * *"
     # 2) 매일 UTC 14:59 (KST 23:59) - 실제 /update-daily
     - cron: "59 14 * * *"
-    # 3) 매 5분 간격
-    - cron: "*/5 * * * *"
 
 jobs:
   # -----------------------
-  # (A) 5분 간격 Ping
-  # -----------------------
-  pingEvery5M:
-    runs-on: ubuntu-latest
-    if: contains(github.event.schedule, '*/5 * * * *')
-    steps:
-      - name: Ping every 5 minutes
-        run: |
-          echo "[Actions] 5-min interval ping..."
-          curl -m 15 https://mafapi.onrender.com/ping || true
-
-  # -----------------------
-  # (B) 23:55 KST (UTC 14:55) → Pre-warm Ping
+  # (A) 23:55 KST (UTC 14:55) → Pre-warm
   # -----------------------
   pre_ping:
     runs-on: ubuntu-latest
+    # 이 job은 schedule 문자열에 "55 14"가 포함된 경우에만 실행
     if: contains(github.event.schedule, '55 14 * * *')
     steps:
       - name: Pre-warm the Render app
@@ -35,10 +22,11 @@ jobs:
           curl -m 15 https://mafapi.onrender.com/ping || true
 
   # -----------------------
-  # (C) 23:59 KST (UTC 14:59) → /update-daily
+  # (B) 23:59 KST (UTC 14:59) → /update-daily
   # -----------------------
   update_daily:
     runs-on: ubuntu-latest
+    # 이 job은 schedule 문자열에 "59 14"가 포함된 경우에만 실행
     if: contains(github.event.schedule, '59 14 * * *')
     steps:
       - name: Update Daily Endpoint
