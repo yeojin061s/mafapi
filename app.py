@@ -65,6 +65,56 @@ def get_user_info():
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
 
+
+@app.route('/update-nickname', methods=['POST'])
+def update_nickname():
+    """
+    Mafia42 게시판 API에서 댓글 데이터를 가져와 닉네임과 유저 ID를 갱신
+    """
+    try:
+        # 게시판 API URL과 요청 데이터
+        board_url = "https://mafia42.com/comment/show-lastDiscussion"
+        payload = {"comment": {"article_id": "1044011", "value": 0}}
+
+        # 게시판 API 호출
+        response = requests.post(board_url, headers=HEADERS, json=payload)
+
+        # 응답 상태 코드 확인
+        if response.status_code != 200:
+            return jsonify({"error": "게시판 API 호출 실패"}), response.status_code
+
+        # 게시판 API 응답 데이터
+        data = response.json()
+
+        if data.get("responseCode") != 12:
+            return jsonify({"error": "게시판 API 응답 실패"}), 400
+
+        # 닉네임 및 유저 ID 갱신
+        comment_data = data.get("commentData", [])
+        updated_count = 0
+
+        with sqlite3.connect("users.db") as conn:
+            cursor = conn.cursor()
+            for comment in comment_data:
+                user_id = comment.get("user_id")
+                nickname = comment.get("nickname")
+
+                if user_id and nickname:
+                    # 데이터베이스에 닉네임과 ID 저장 (중복 시 덮어쓰기)
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO users (id, nickname)
+                        VALUES (?, ?)
+                    """, (user_id, nickname))
+                    updated_count += 1
+
+            conn.commit()
+
+        return jsonify({"message": f"{updated_count}개의 닉네임이 갱신되었습니다."}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
+
+
 # 메인 실행
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
