@@ -38,14 +38,22 @@ def get_user_info():
         if not user_id:
             return jsonify({"error": "유효한 user_id가 필요합니다"}), 400
 
-        # Mafia42 API 요청
         response = requests.post(
-            MAFIA42_API_URL, headers=HEADERS, data=json.dumps({"id": user_id})
+            MAFIA42_API_URL,
+            headers=HEADERS,
+            data=json.dumps({"id": user_id})
         )
 
-        # 상태 코드 확인 및 JSON 응답 반환
+        print(f"API Response Status Code: {response.status_code}")
+        print(f"API Response Body: {response.text}")  # 로그에 응답 내용 출력
+
+
+        # Mafia42 API의 JSON 응답 처리
         if response.status_code == 200:
-            return jsonify(response.json()), 200
+            try:
+                return jsonify(response.json()), 200
+            except json.JSONDecodeError:
+                return jsonify({"error": "Mafia42 API가 유효한 JSON을 반환하지 않았습니다."}), 500
         elif response.status_code == 401:
             return jsonify({"error": "쿠키 정보가 만료되었습니다. 개발자에게 문의하세요."}), 401
         else:
@@ -56,6 +64,7 @@ def get_user_info():
             }), 500
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
+
 # 메인 실행
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
