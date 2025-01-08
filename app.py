@@ -184,8 +184,10 @@ def update_daily():
     모든 유저의 전적을 갱신
     """
     try:
-        print("🔄 /update-daily 요청 도착")
-        with sqlite3.connect(DATABASE_PATH) as conn:
+        print("🔄 /update-daily 요청 도착")  # 디버그 메시지
+
+        # 데이터베이스 연결
+        with sqlite3.connect("users.db") as conn:  # 다른 엔드포인트들과 동일한 경로
             cursor = conn.cursor()
 
             # 1. 이전 전적 초기화
@@ -194,15 +196,13 @@ def update_daily():
             conn.commit()
 
             # 2. 모든 유저의 새로운 전적 가져와 갱신
+            print("📥 새로운 전적 갱신 중...")
             updated_count = 0
             for user in cursor.execute("SELECT id FROM users").fetchall():
                 user_id = user[0]
-                print(f"🔍 유저 {user_id} 전적 갱신 중...")
 
                 # 전적 API 호출
                 response = requests.post(MAFIA42_API_URL, headers=HEADERS, data=json.dumps({"id": user_id}))
-                print(f"🔍 유저 {user_id} API 응답: {response.status_code}")
-
                 if response.status_code == 200:
                     user_data = response.json().get("userData", {})
                     wins = user_data.get("win_count", 0)
@@ -222,7 +222,7 @@ def update_daily():
         print(f"✅ {updated_count}명의 유저 전적이 갱신되었습니다.")
         return jsonify({"message": f"{updated_count}명의 유저 전적이 갱신되었습니다."}), 200
     except Exception as e:
-        print(f"🚨 오류 발생: {str(e)}")
+        print(f"🚨 오류 발생: {str(e)}")  # 예외 메시지 출력
         return jsonify({"error": str(e)}), 500
 
 
