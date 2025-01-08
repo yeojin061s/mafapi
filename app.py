@@ -74,10 +74,17 @@ def update_nickname():
     try:
         # 게시판 API URL과 요청 데이터
         board_url = "https://mafia42.com/comment/show-lastDiscussion"
-        payload = {"comment": {"article_id": "1044039", "value": 0}}
+        payload = {"comment": {"article_id": "1044011", "value": 0}}
+
+        # 디버그: 요청 데이터 출력
+        print("📤 게시판 API 요청:", payload)
 
         # 게시판 API 호출
         response = requests.post(board_url, headers=HEADERS, json=payload)
+
+        # 응답 상태 코드와 데이터 출력
+        print("📥 게시판 API 응답 상태 코드:", response.status_code)
+        print("📥 게시판 API 응답 데이터:", response.text)
 
         # 응답 상태 코드 확인
         if response.status_code != 200:
@@ -85,7 +92,6 @@ def update_nickname():
 
         # 게시판 API 응답 데이터
         data = response.json()
-
         if data.get("responseCode") != 12:
             return jsonify({"error": "게시판 API 응답 실패"}), 400
 
@@ -109,10 +115,16 @@ def update_nickname():
 
             conn.commit()
 
+        # 디버그: 업데이트된 수 출력
+        print(f"🔄 갱신된 닉네임 수: {updated_count}")
+
         return jsonify({"message": f"{updated_count}개의 닉네임이 갱신되었습니다."}), 200
 
     except Exception as e:
+        # 디버그: 예외 출력
+        print("🚨 서버 내부 오류:", str(e))
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
+
 
 
 # 메인 실행
