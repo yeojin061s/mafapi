@@ -2,7 +2,8 @@ name: Daily User Stats Update
 
 on:
   schedule:
-    - cron: "59 14 * * *" # 매일 한국 시간 23:59에 실행 (UTC 기준 14:59)
+    - cron: "59 14 * * *" # 매일 한국 시간 23:59에 실행 (UTC로는 14:59)
+  workflow_dispatch: # 수동 실행 기능 추가
 
 jobs:
   update-daily:
