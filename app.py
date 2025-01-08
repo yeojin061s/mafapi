@@ -74,7 +74,7 @@ def update_nickname():
     try:
         # 게시판 API URL과 요청 데이터
         board_url = "https://mafia42.com/comment/show-lastDiscussion"
-        payload = {"comment": {"article_id": "1044011", "value": 0}}
+        payload = {"comment": {"article_id": "1044039", "value": 0}}
 
         # 게시판 API 호출
         response = requests.post(board_url, headers=HEADERS, json=payload)
