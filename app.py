@@ -171,6 +171,45 @@ def get_user_id():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/update-daily', methods=['POST'])
+def update_daily():
+    """
+    모든 유저의 전적을 갱신
+    """
+    try:
+        with sqlite3.connect(DATABASE_PATH) as conn:
+            cursor = conn.cursor()
+
+            # 1. 이전 전적 초기화
+            cursor.execute("UPDATE users SET daily_wins = 0, daily_losses = 0")
+            conn.commit()
+
+            # 2. 모든 유저의 새로운 전적 가져와 갱신
+            updated_count = 0
+            for user in cursor.execute("SELECT id FROM users").fetchall():
+                user_id = user[0]
+
+                # 전적 API 호출
+                response = requests.post(MAFIA42_API_URL, headers=HEADERS, data=json.dumps({"id": user_id}))
+                if response.status_code == 200:
+                    user_data = response.json().get("userData", {})
+                    wins = user_data.get("win_count", 0)
+                    losses = user_data.get("lose_count", 0)
+
+                    # 데이터베이스 업데이트
+                    cursor.execute("""
+                        UPDATE users
+                        SET daily_wins = ?, daily_losses = ?
+                        WHERE id = ?
+                    """, (wins, losses, user_id))
+                    conn.commit()
+                    updated_count += 1
+                else:
+                    print(f"❌ 유저 {user_id}의 전적 API 호출 실패: {response.status_code}")
+
+        return jsonify({"message": f"{updated_count}명의 유저 전적이 갱신되었습니다."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # 메인 실행
