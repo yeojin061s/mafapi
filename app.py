@@ -33,35 +33,19 @@ HEADERS = {
 
 @app.route('/user-info', methods=['POST'])
 def get_user_info():
-    """Mafia42 API를 호출하여 유저 정보를 반환"""
     try:
-        # 요청 JSON에서 user_id 가져오기
         user_id = request.json.get("id")
         if not user_id:
             return jsonify({"error": "유효한 user_id가 필요합니다"}), 400
-        
-        # Mafia42 API 요청 데이터
-        data = {"id": user_id}
 
-        # 요청 로깅 (디버깅 용도)
-        print(f"Request Headers: {HEADERS}")
-        print(f"Request Data: {data}")
+        # Mafia42 API 요청
+        response = requests.post(
+            MAFIA42_API_URL, headers=HEADERS, data=json.dumps({"id": user_id})
+        )
 
-        # Mafia42 API 호출
-        response = requests.post(MAFIA42_API_URL, headers=HEADERS, data=json.dumps(data))
-
-        # 응답 데이터 로깅
-        print(f"API Response Status Code: {response.status_code}")
-        print(f"API Response Body: {response.text}")
-
-
-        # 상태 코드 확인
+        # 상태 코드 확인 및 JSON 응답 반환
         if response.status_code == 200:
-            try:
-                response_data = response.json()
-                return jsonify(response_data), 200
-            except json.JSONDecodeError:
-                return jsonify({"error": "응답 데이터를 처리할 수 없습니다."}), 500
+            return jsonify(response.json()), 200
         elif response.status_code == 401:
             return jsonify({"error": "쿠키 정보가 만료되었습니다. 개발자에게 문의하세요."}), 401
         else:
@@ -72,7 +56,6 @@ def get_user_info():
             }), 500
     except Exception as e:
         return jsonify({"error": f"서버 내부 오류: {str(e)}"}), 500
-
 # 메인 실행
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
